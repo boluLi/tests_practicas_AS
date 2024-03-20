@@ -1,0 +1,54 @@
+
+Parte 1. Preparación de las máquinas en VirtualBox:
+
+Creamos las maquinas haciendo clones enlazados con as_base de la practica 3
+En VirtualBox definimos una red Host Only Network en File->Preferences->Network->Add Host Only-Network
+Modficamos etc/network/interfaces para que se conecten con
+Se lo ponemos al segundo adaptador de red a las maquinas creadas
+
+Modficamos etc/network/interfaces para que se conecten con Host Only-Network
+  Escribimos en debian-as1->
+  auto enp0s8
+  iface enp0s8 inet static
+	    address 192.168.56.10
+	    netmask 255.255.255.0
+	    broadcast 192.168.56.255
+	    network 192.168.0.0
+
+  Escribimos en debian-as2->
+  auto enp0s8
+  iface enp0s8 inet static
+  	  address 192.168.56.20
+  	  netmask 255.255.255.0
+  	  broadcast 192.168.56.255
+  	  network 192.168.0.0
+
+También hemos creado en Virtual Box una nueva red local de tipo "solo anfitrion" para poder conectar las máquinas entre sí.
+Una vez creado el interfaz hemos comprobado que todas las máquinas se conectan entre si mediante el comando ping "ip".
+Finalmente, cada una de las dos máquinas añadidas (debian-as1 y debian-as2), quedará con 2 adaptadores de red:
+- NAT
+- Host-Only Network
+
+Parte 2. Configuración de las máquinas virtuales
+------------------------------------------------
+Para permitir que el usuario  as pueda ejecutar cualquier comando sin necesidad de introducir su password
+escribimos en el fichero "sudoers"
+  as	ALL=NOPASSWD: ALL
+
+Instalamos ssh
+  apt-get install openssh-server
+
+Modificamos el fichero /etc/ssh/sshd_config para que no se conencten  a root en ssh
+descomentando la linea "PermitRootLogin no"
+
+Parte 3. Preparación de la infraestructura de autenticación
+
+Generamos nuestra clave publica y privada que debera ser ed25519
+  - ssh-keygen -t ed25519
+Copiamos la clave publica a la maquina a la que te quieres conectar y con el parametro -i indicamos la ruta donde guardarla
+- ssh-copy-id -i ~/.ssh/id_as_ed25519.pub "user"@"ip"
+
+PARTE 4. CREACIÓN DE USUARIOS
+-----------------------------
+Para conseguir que al ejecutar el script correctamente, hemos añadido al comando ssh el flag -i
+para especificar el fichero en el cual está tu clave privada y así realizar la verificación de identidad y poder acceder sin contraseña.
