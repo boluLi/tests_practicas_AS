@@ -1,0 +1,67 @@
+PRACTICA 5
+
+
+
+PARTE I
+
+Añadimos el nuevo disco virtual y comprobamos  con systemctl list-units
+que el servicio de lvm2 está corriendo
+
+Creamos dos particiones con  16miB
+  parted /dev/sdb
+  mklabel gpt
+  mkpart P1 ext3 1 16
+  mkpart P2 ext4 16 32
+
+Le asignamos el tipo ext 3 y ext4
+  mkfs -t ext3 /dev/sdb1
+  mkfs -t ext4 /dev/sdb2
+
+Montamos los discos
+  mount -t ext3 /dev/sdb1 /mnt/part1
+  mount -t ext4 /dev/sdb2 /mnt/part2
+
+Verificamos el montaje
+ /etc/mtab
+
+Configurar el sistema para que monte las nuevas particiones en el arranque (fichero /etc/fstab):
+
+Sacamos las UID de las particiones
+blkid /dev/sdb1
+blkid /dev/sdb2
+
+Con esas UID escribimos en el fichero  /etc/fstab
+UID={UID_1}    /mnt/part1      ext3    errors=remount-ro   0       1
+UID={UID_2}    /mnt/part2      ext4    errors=remount-ro   0       1
+
+Reiniciamos la maquina y verificamos de nuevo el montaje
+   /etc/mtab
+
+
+PARTE II
+
+Con el mismo comando para conectar a ssh en debian_as1 añadimos las instrucciones
+Miramos si tiene el numero de parametros correctos
+Hacemos ping para ver si llega la conexion y concatenamos las tres llamadas
+ssh -i ~/.ssh/id_as_ed25519 as@"$ip" "sudo sfdisk -s;echo -e "\n";sudo sfdisk -l;echo -e "\n";df -hT"
+
+PARTE III
+
+
+Seleccionar el disco a particionar
+sudo fdisk /dev/sdc
+Pulsamos "n" para crear particion nueva
+Tomamos valores por defecto
+Pulsamos "t" para para cambiar topo de particionar
+Pulsamos "8e" para seleccionar ese tipo
+Pulsamos "w" para guardar
+
+
+Creamos  el grupo volumen:
+vgcreate vg_p5 /dev/sdc1
+vgchange -a y vg_p5
+
+Probamos la ejecución del script con:
+./practica5_parte3_vg.sh vg_p5 /dev/sdb1 /dev/sdb2
+
+Tras la ejecucion esta contara con dos volumenes fisicos en el grupo volumen
